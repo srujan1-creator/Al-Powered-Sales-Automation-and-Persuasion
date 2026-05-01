@@ -13,11 +13,24 @@ from config import settings
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Configure Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler()]
-)
+import json
+
+# Configure Structured JSON Logging for Google Cloud
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "severity": record.levelname,
+            "message": record.getMessage(),
+            "name": record.name,
+            "timestamp": self.formatTime(record, self.datefmt)
+        }
+        if record.exc_info:
+            log_record["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_record)
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[handler])
 logger = logging.getLogger("aura-api")
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -149,6 +162,11 @@ def get_conversation(request: Request, conversation_id: int, db: Session = Depen
 
 from fastapi.staticfiles import StaticFiles
 import os
+
+@app.get("/health")
+def health_check():
+    """Endpoint for Cloud Run health probes."""
+    return {"status": "healthy", "service": "aura-sales-assistant"}
 
 app.include_router(api_router)
 

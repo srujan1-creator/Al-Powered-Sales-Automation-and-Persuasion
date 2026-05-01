@@ -52,3 +52,15 @@ def test_analyze_lead_score_exception():
         mock_client.models.generate_content.side_effect = Exception("API Down")
         score = ai_engine.analyze_lead_score([])
         assert score == 50.0
+
+def test_generate_intro_pitch_exception():
+    with patch('ai_engine.client') as mock_client:
+        mock_client.models.generate_content.side_effect = Exception("Intro Error")
+        result = ai_engine.generate_intro_pitch("10", "Tech", "No AI")
+        assert "Hello! I'm Aura" in result
+
+def test_generate_sales_response_exception():
+    with patch('ai_engine.client') as mock_client:
+        mock_client.models.generate_content.side_effect = Exception("Sales Error")
+        result = ai_engine.generate_sales_response([], "Hi")
+        assert "I completely understand" in result
