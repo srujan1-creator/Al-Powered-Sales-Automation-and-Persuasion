@@ -10,6 +10,7 @@ import logging
 import models, schemas, ai_engine
 from database import engine, get_db
 from config import settings
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Configure Logging
 logging.basicConfig(
@@ -18,6 +19,17 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger("aura-api")
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Middleware to inject standard security headers into every response."""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+        return response
 
 # API Key Security
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -35,6 +47,7 @@ app = FastAPI(title="Aura AI Sales Assistant API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
