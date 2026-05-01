@@ -134,4 +134,14 @@ def get_conversation(request: Request, conversation_id: int, db: Session = Depen
         raise HTTPException(status_code=404, detail="Conversation not found")
     return db_conversation
 
+from fastapi.staticfiles import StaticFiles
+import os
+
 app.include_router(api_router)
+
+# Serve Frontend Static Files
+frontend_path = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(frontend_path):
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
+else:
+    logger.warning(f"Frontend static directory not found at {frontend_path}")

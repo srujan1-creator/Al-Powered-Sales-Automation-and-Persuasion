@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 const API_KEY = 'aura_secret_key_123'; // Matches the backend default for demo
 
 const getHeaders = () => ({
