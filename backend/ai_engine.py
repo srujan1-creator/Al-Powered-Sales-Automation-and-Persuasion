@@ -20,7 +20,7 @@ def _call_gemini(prompt: str, use_search: bool = False, system_instruction: str 
         
     config_kwargs = {}
     if use_search:
-        config_kwargs["tools"] = [{"google_search": {}}]
+        config_kwargs["tools"] = [types.Tool(google_search=types.GoogleSearch())]
     if system_instruction:
         config_kwargs["system_instruction"] = system_instruction
         
